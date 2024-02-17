@@ -3,6 +3,9 @@
 import { ref } from 'vue';
 import SelecionarIngredientes from './SelecionarIngredientes.vue';
 import SuaLista from './SuaLista.vue';
+import MostrarReceitas from './MostrarReceitas.vue';
+
+type Pagina = 'SelecionarIngredientes' | 'MostrarReceitas';
 
 /*
 ref: É uma função fornecida pelo Vue 3 para criar uma referência reativa. Uma referência reativa é uma maneira de monitorar e reagir às mudanças no valor.
@@ -10,6 +13,7 @@ string[]: Indica que a referência criada (ingredientes) será usada para armaze
 []: Inicializa a referência reativa ingredientes com uma matriz vazia como valor inicial.
 */
 const ingredientes = ref<string[]>([]);
+const conteudo = ref('SelecionarIngredientes' as Pagina);
 
 function adicionarIngrediente(event: string) {
     ingredientes.value.push(event);
@@ -17,6 +21,10 @@ function adicionarIngrediente(event: string) {
 
 function removerIngrediente(event: string) {
     ingredientes.value = ingredientes.value.filter(iLista => event !== iLista);
+}
+
+function navegar(pagina: Pagina) {
+    conteudo.value = pagina;
 }
 
 // Composition API
@@ -77,11 +85,21 @@ export default {
 
 <template>
     <main class="conteudo-principal">
-        <SuaLista :ingredientes="ingredientes" /> 
-        <SelecionarIngredientes
-            @adicionar-ingrediente="adicionarIngrediente"
-            @remover-ingrediente="removerIngrediente"
-        />
+        <SuaLista :ingredientes="ingredientes" />
+
+        <!-- O 'KeepAlive' preservar os estados dos componentes -->
+        <KeepAlive include="SelecionarIngredientes">
+            <SelecionarIngredientes v-if="conteudo === 'SelecionarIngredientes'"
+                @adicionar-ingrediente="adicionarIngrediente"
+                @remover-ingrediente="removerIngrediente"
+                @buscar-receitas="navegar('MostrarReceitas')"
+            />
+    
+            <MostrarReceitas v-else-if="conteudo === 'MostrarReceitas'"
+                :ingredientes="ingredientes"
+                @editar-receitas="navegar('SelecionarIngredientes')"
+            />
+        </KeepAlive>
     </main>
 </template>
 
